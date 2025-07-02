@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventaire de Boissons pour Bar</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Inventaire de Boissons</h1>
+    <form id="boisson-form">
+        <input type="text" id="nom" placeholder="Nom de la boisson" required>
+        <input type="number" id="quantite" placeholder="Quantité" min="0" required>
+        <input type="text" id="categorie" placeholder="Catégorie (bière, vin...)" required>
+        <button type="submit">Ajouter / Modifier</button>
+        <input type="hidden" id="edit-index">
+    </form>
+    <table id="inventaire">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Quantité</th>
+                <th>Catégorie</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Les boissons seront listées ici -->
+        </tbody>
+    </table>
+    <script src="app.js"></script>
+</body>
+</html>

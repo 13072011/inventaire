@@ -1,15 +1,20 @@
-const SHEET_ID = "<ID_DE_TA_FEUILLE>"; // Remplace par l’ID de ton Google Sheet
+// Remplace cette URL par celle de ton dépôt GitHub et du fichier inventaire.json
+const URL_JSON = "https://raw.githubusercontent.com/ton-user/ton-repo/main/inventaire.json";
+
+// Seuil sous lequel on affiche "stock bas"
+const STOCK_BAS = 5;
+
 let boissons = [];
 
-function fetchBoissons() {
-    Tabletop.init({
-        key: SHEET_ID,
-        callback: function(data, tabletop) {
-            boissons = data;
-            renderClientView();
-        },
-        simpleSheet: true
-    });
+async function fetchInventaire() {
+    try {
+        const res = await fetch(URL_JSON, {cache: "no-store"});
+        if (!res.ok) throw new Error("Impossible de charger l'inventaire.");
+        boissons = await res.json();
+        renderClientView();
+    } catch (e) {
+        document.getElementById("client-cards").innerHTML = `<div style="color:red;padding:30px;">Erreur de chargement : ${e.message}</div>`;
+    }
 }
 
 function renderClientView() {
@@ -17,8 +22,8 @@ function renderClientView() {
     const search = (document.getElementById('client-search') || {value:""}).value.trim().toLowerCase();
     let data = boissons.filter(b => {
         return (!search
-            || (b.Nom && b.Nom.toLowerCase().includes(search))
-            || (b.Catégorie && b.Catégorie.toLowerCase().includes(search))
+            || (b.nom && b.nom.toLowerCase().includes(search))
+            || (b.categorie && b.categorie.toLowerCase().includes(search))
         );
     });
     cards.innerHTML = '';
@@ -27,13 +32,13 @@ function renderClientView() {
         return;
     }
     data.forEach(b => {
-        const qte = Number(b.Quantité || 0);
-        const isLow = qte < 5;
+        const qte = Number(b.quantite || 0);
+        const isLow = qte < STOCK_BAS;
         const div = document.createElement('div');
         div.className = 'bottle-card' + (isLow ? ' low-stock' : '');
         div.innerHTML = `
-            <div class="boisson-nom">${b.Nom}</div>
-            <div class="boisson-categorie">${b.Catégorie || ""}</div>
+            <div class="boisson-nom">${b.nom}</div>
+            <div class="boisson-categorie">${b.categorie || ""}</div>
             <div class="stock-info">
                 ${qte > 0 
                     ? `Stock : <strong>${qte}</strong>`
@@ -51,5 +56,5 @@ if (document.getElementById('client-search')) {
 }
 
 // Rafraîchit toutes les 30 secondes pour garder la synchro
-fetchBoissons();
-setInterval(fetchBoissons, 30000);
+fetchInventaire();
+setInterval(fetchInventaire, 30000);

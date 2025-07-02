@@ -2,78 +2,18 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Inventaire de Boissons pour Bar</title>
+    <title>Inventaire de Boissons (Synchronisé)</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="login-section">
-        <h1>Inventaire de Boissons</h1>
-        <p>Choisissez votre mode d'accès :</p>
-        <button id="btn-admin">Admin</button>
-        <button id="btn-client">Client</button>
-        <div id="admin-login" style="display:none;margin-top:20px;">
-            <input type="password" id="admin-password" placeholder="Mot de passe admin">
-            <button id="btn-login-admin">Connexion</button>
-            <div id="admin-login-error" class="error"></div>
+    <h1>Inventaire de Boissons (Synchro)</h1>
+    <div id="client-inventaire">
+        <div class="client-searchbar">
+            <input type="text" id="client-search" placeholder="Rechercher une boisson...">
         </div>
+        <div id="client-cards" class="cards-container"></div>
     </div>
-
-    <div id="app-section" style="display:none;">
-        <div id="top-bar">
-            <span id="app-mode"></span>
-            <button id="btn-logout" style="float:right;">Déconnexion</button>
-        </div>
-
-        <div id="admin-tools" style="display:none;">
-            <div class="toolbar">
-                <input type="text" id="search" placeholder="Recherche par nom ou catégorie...">
-                <select id="filter-categorie">
-                    <option value="">Toutes catégories</option>
-                </select>
-                <label>Seuil stock bas: <input type="number" id="low-stock-threshold" min="0" value="5" style="width:60px"></label>
-                <button id="export-csv">Exporter CSV</button>
-                <input type="file" id="import-csv" accept=".csv" style="display:none;">
-                <button id="import-csv-btn">Importer CSV</button>
-            </div>
-            <form id="boisson-form">
-                <input type="text" id="nom" placeholder="Nom de la boisson" required>
-                <input type="number" id="quantite" placeholder="Quantité" min="0" required>
-                <input type="text" id="categorie" placeholder="Catégorie (bière, vin...)" required>
-                <button type="submit">Ajouter / Modifier</button>
-                <input type="hidden" id="edit-index">
-            </form>
-        </div>
-
-        <div class="stats" id="stats-bar">
-            <span id="stat-total">Total boissons : 0</span> | 
-            <span id="stat-stock">Stock total : 0</span>
-        </div>
-
-        <!-- Admin table -->
-        <table id="inventaire" style="display:none;">
-            <thead>
-                <tr>
-                    <th>Nom</th>
-                    <th>Quantité</th>
-                    <th>Catégorie</th>
-                    <th id="actions-header" style="display:none;">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            </tbody>
-        </table>
-
-        <!-- Client view -->
-        <div id="client-inventaire" style="display:none;">
-            <div class="client-searchbar">
-                <input type="text" id="client-search" placeholder="Rechercher une boisson...">
-                <select id="client-filter-categorie">
-                    <option value="">Toutes catégories</option>
-                </select>
-            </div>
-            <div id="client-cards" class="cards-container"></div>
-        </div>
-    </div>
+    <script src="https://unpkg.com/tabletop@1.6.0/tabletop.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 // Remplace cette URL par celle de ton dépôt GitHub et du fichier inventaire.json
-const URL_JSON = "https://raw.githubusercontent.com/ton-user/ton-repo/main/inventaire.json";
+const URL_JSON = "https://raw.githubusercontent.com/13072011/inventaire/main/inventaire.json";
 
 // Seuil sous lequel on affiche "stock bas"
 const STOCK_BAS = 5;

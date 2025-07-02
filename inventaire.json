@@ -1,5 +1,5 @@
 [
   {"nom": "Heineken", "quantite": 12, "categorie": "Bière"},
-  {"nom": "Coca-Cola", "quantite": 8, "categorie": "Soda"},
+  {"nom": "Coca-Cola", "quantite": 0, "categorie": "Soda"},
   {"nom": "Chardonnay", "quantite": 5, "categorie": "Vin blanc"}
 ]

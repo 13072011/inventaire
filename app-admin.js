@@ -2,8 +2,8 @@
 async function pushToGitHub(newData, token) {
     const { Octokit } = window.Octokit;
     const octokit = new Octokit({ auth: token });
-    const owner = "ton-user";
-    const repo = "ton-repo";
+    const owner = "13072011";
+    const repo = "inventaire";
     const path = "inventaire.json";
 
     // Récupérer le SHA du fichier pour le mettre à jour

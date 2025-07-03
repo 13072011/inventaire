@@ -2,6 +2,11 @@
   {
     "nom": "bière blonde",
     "quantite": 2,
-    "categorie": "Bière"
+    "description": "Bière"
+  },
+  {
+    "nom": "coca cola",
+    "quantite": 4,
+    "description": "soda"
   }
 ]

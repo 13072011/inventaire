@@ -5,7 +5,7 @@ const editIndexInput = document.getElementById('edit-index');
 const btnAdd = document.getElementById('btn-add');
 const btnCancel = document.getElementById('btn-cancel');
 
-// Gestion du chargement du JSON
+// Chargement du JSON local
 document.getElementById('json-loader').addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -97,4 +97,62 @@ document.getElementById('download-json').onclick = function() {
     a.href = URL.createObjectURL(blob);
     a.download = "inventaire.json";
     a.click();
+};
+
+// Commit GitHub
+document.getElementById('push-github').onclick = async function() {
+    const owner = document.getElementById('gh-owner').value.trim();
+    const repo = document.getElementById('gh-repo').value.trim();
+    const branch = document.getElementById('gh-branch').value.trim();
+    const path = document.getElementById('gh-path').value.trim();
+    const token = document.getElementById('gh-token').value.trim();
+    const msg = document.getElementById('gh-msg');
+
+    if (!owner || !repo || !branch || !path || !token) {
+        msg.style.color = 'red';
+        msg.textContent = "Champs GitHub manquants.";
+        return;
+    }
+
+    msg.style.color = '#888';
+    msg.textContent = "Mise à jour en cours...";
+
+    const octokit = new window.Octokit({ auth: token });
+
+    try {
+        // Récupérer le SHA du fichier pour pouvoir le modifier
+        let fileResp = await octokit.repos.getContent({ owner, repo, path, ref: branch });
+        let sha = fileResp.data.sha;
+
+        // Commit !
+        await octokit.repos.createOrUpdateFileContents({
+            owner, repo, path,
+            message: "Mise à jour inventaire.json via admin interface",
+            content: btoa(unescape(encodeURIComponent(JSON.stringify(inventaire, null, 2)))),
+            branch,
+            sha
+        });
+        msg.style.color = "#007700";
+        msg.textContent = "Mise à jour réussie sur GitHub !";
+    } catch (e) {
+        if (e.status === 404) {
+            // Le fichier n'existe pas, on le crée
+            try {
+                await octokit.repos.createOrUpdateFileContents({
+                    owner, repo, path,
+                    message: "Ajout inventaire.json via admin interface",
+                    content: btoa(unescape(encodeURIComponent(JSON.stringify(inventaire, null, 2)))),
+                    branch
+                });
+                msg.style.color = "#007700";
+                msg.textContent = "inventaire.json créé sur GitHub !";
+            } catch (err2) {
+                msg.style.color = "red";
+                msg.textContent = "Erreur lors de la création : " + err2.message;
+            }
+        } else {
+            msg.style.color = "red";
+            msg.textContent = "Erreur GitHub: " + (e.message || e);
+        }
+    }
 };

@@ -41,7 +41,7 @@ function renderClientView() {
             <div class="boisson-categorie">${b.categorie || ""}</div>
             <div class="stock-info">
                 ${qte > 0 
-                    ? `<span style="color:#00cd00;">En Stock</span>`
+                    ? `<span style="color:#00cd00;font-weight:bold;">Stock: + ${quantite}</span>`
                     : `<span style="color:#d41e1e;font-weight:bold;">Rupture de stock</span>`
                 }
             </div>

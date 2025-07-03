@@ -8,5 +8,15 @@
     "nom": "Citronel",
     "quantite": 2,
     "categorie": "Jus"
+  },
+  {
+    "nom": "Ice the",
+    "quantite": 5,
+    "categorie": "Soda"
+  },
+  {
+    "nom": "Sirop",
+    "quantite": 10,
+    "categorie": "Sirop"
   }
 ]

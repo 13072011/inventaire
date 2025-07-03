@@ -2,9 +2,9 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Admin – Inventaire de Boissons</title>
+    <title>Admin – Inventaire de Boissons (Sync GitHub)</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="admin_Version7.css">
+    <link rel="stylesheet" href="admin.css">
 </head>
 <body>
     <h1>Admin – Inventaire de Boissons</h1>
@@ -37,8 +37,18 @@
                 <!-- Lignes générées -->
             </tbody>
         </table>
+        <div class="sync-github">
+            <input type="text" id="gh-owner" placeholder="GitHub owner (ex: 13072011)" required>
+            <input type="text" id="gh-repo" placeholder="Nom du repo (ex: inventaire-bar)" required>
+            <input type="text" id="gh-branch" placeholder="Branche (main)" value="main" required>
+            <input type="text" id="gh-path" placeholder="Chemin fichier (inventaire.json)" value="inventaire.json" required>
+            <input type="password" id="gh-token" placeholder="Token GitHub (repo scope)" required>
+            <button id="push-github">Mettre à jour sur GitHub</button>
+            <span id="gh-msg"></span>
+        </div>
         <button id="download-json">Télécharger inventaire.json</button>
     </section>
+    <script src="https://cdn.jsdelivr.net/npm/@octokit/rest/dist/octokit.legacy.min.js"></script>
     <script src="admin_Version7.js"></script>
 </body>
 </html>

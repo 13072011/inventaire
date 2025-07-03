@@ -2,138 +2,75 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Inventaire GitHub</title>
+  <title>Admin Inventaire GitHub (simplifié)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body {
-      font-family: system-ui, sans-serif;
-      background: #f5f7fa;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
+    body { font-family:sans-serif; background:#f5f7fa; margin:0; }
+    .container { max-width:700px; margin:40px auto; background:#fff; border-radius:8px; box-shadow:0 0 8px #0001; padding:30px 20px 20px 20px; }
+    h1 { font-size:2em; color:#264653; letter-spacing:1px; }
+    label { font-weight:500; display:block; margin:0.7em 0 0.2em; color:#222; }
+    input[type="password"], input[type="text"], input[type="number"] {
+      width:100%; box-sizing:border-box; font-size:1em; padding:7px 10px; margin-bottom:10px;
+      border:1px solid #bbb; border-radius:4px; outline:none; transition:border 0.2s;
     }
-    .container {
-      max-width: 700px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 0 8px #0001;
-      padding: 30px 20px 20px 20px;
-    }
-    h1 {
-      font-size: 2em;
-      margin-top: 0;
-      color: #2b2f42;
-      letter-spacing: 1px;
-    }
-    label {
-      font-weight: 500;
-      margin: 0.7em 0 0.2em;
-      display: block;
-      color: #22223b;
-    }
-    input[type="password"], input[type="text"], input[type="search"] {
-      width: 100%;
-      box-sizing: border-box;
-      font-size: 1em;
-      padding: 7px 10px;
-      margin-bottom: 10px;
-      border: 1px solid #bbb;
-      border-radius: 4px;
-      outline: none;
-      transition: border 0.2s;
-    }
-    input[type="password"]:focus, input[type="text"]:focus, input[type="search"]:focus {
-      border-color: #4e8cff;
-    }
-    textarea {
-      width: 100%;
-      min-height: 250px;
-      font-family: "Fira Mono", "Consolas", monospace;
-      font-size: 1em;
-      padding: 10px;
-      border-radius: 4px;
-      border: 1px solid #bbb;
-      box-sizing: border-box;
-      margin-bottom: 10px;
-      resize: vertical;
-      background: #f7faff;
-    }
-    .btn-row {
-      display: flex;
-      gap: 1em;
-      margin-bottom: 1em;
-    }
+    input:focus { border-color:#4e8cff; }
+    table { width:100%; border-collapse:collapse; margin-bottom: 10px; background:#f7faff; }
+    th, td { border:1px solid #cce; padding:7px; text-align:left; }
+    th { background:#e9f1fb; }
+    tr:nth-child(even) { background: #f4fafd; }
+    .actions button { background: #e74c3c; border: none; color: #fff; padding: 5px 12px; border-radius: 4px; cursor:pointer;}
+    .actions button:hover { background: #c0392b; }
+    .btn-row { display:flex; gap:1em; margin-bottom:1em; }
     button {
-      background: #4e8cff;
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      padding: 10px 22px;
-      font-size: 1em;
-      cursor: pointer;
-      transition: background 0.2s;
-      font-weight: 600;
-      box-shadow: 0 2px 6px #0001;
+      background:#4e8cff; color:#fff; border:none; border-radius:4px; padding:10px 22px;
+      font-size:1em; cursor:pointer; font-weight:600; box-shadow:0 2px 6px #0001; transition:background 0.2s;
     }
-    button:disabled {
-      background: #bdbdbd;
-      cursor: not-allowed;
-    }
-    button:hover:not(:disabled) {
-      background: #3268d4;
-    }
-    #msg {
-      font-weight: 600;
-      min-height: 1.5em;
-      margin-top: 10px;
-      color: #d90429;
-      letter-spacing: .2px;
-      white-space: pre-line;
-    }
-    #msg.success {
-      color: #239b56;
-    }
-    .small {
-      color: #666;
-      font-size: .98em;
-    }
-    @media (max-width: 600px) {
-      .container {
-        max-width: 100vw;
-        border-radius: 0;
-        padding: 16px 2vw 10vw 2vw;
-      }
-      textarea {
-        min-height: 130px;
-      }
-      h1 {
-        font-size: 1.3em;
-      }
+    button:disabled { background:#bdbdbd; cursor:not-allowed; }
+    button[type="button"].add { background:#239b56; }
+    button[type="button"].add:hover { background:#16763a; }
+    #msg { font-weight:600; min-height:1.5em; margin-top:10px; color:#d90429; }
+    #msg.success { color:#239b56; }
+    .small { color:#666; font-size:.98em; }
+    @media (max-width:600px){
+      .container{max-width:100vw;padding:16px 2vw 10vw 2vw;}
+      h1{font-size:1.3em;}
+      table{font-size:.98em;}
     }
   </style>
 </head>
 <body>
   <div class="container">
     <h1>Administration de l'inventaire GitHub</h1>
-    <label for="token">Token GitHub personnel <span class="small">(avec droits d’écriture sur le dépôt)</span> :</label>
+    <label for="token">Token GitHub personnel :</label>
     <input id="token" type="password" autocomplete="off" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx">
 
     <div class="btn-row">
       <button id="load">🔄 Charger l’inventaire</button>
-      <button id="save" disabled>💾 Enregistrer les modifications</button>
-      <button id="new" title="Réinitialiser/Créer un nouvel inventaire">🆕 Nouveau</button>
-      <button id="copy" title="Copier le contenu">📋 Copier</button>
+      <button id="save" disabled>💾 Enregistrer</button>
+      <button id="new" type="button" class="add">🆕 Nouvel article</button>
     </div>
 
-    <label for="inventaire">Contenu de l’inventaire (JSON) :</label>
-    <textarea id="inventaire" spellcheck="false" autocomplete="off" disabled></textarea>
+    <form id="inv-form">
+      <table id="inv-table">
+        <thead>
+          <tr>
+            <th>Nom de l’article</th>
+            <th>Quantité</th>
+            <th>Description</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Les lignes seront ajoutées ici dynamiquement -->
+        </tbody>
+      </table>
+    </form>
     <div id="msg"></div>
     <div class="small" style="margin-top:20px;">
-      ⚠️ Ton token n’est jamais stocké. Toute action modifie <b>directement</b> le fichier <code>inventaire.json</code> sur GitHub.<br>
-      <a href="https://github.com/settings/tokens" target="_blank">Créer un token GitHub</a> (scope <code>repo</code> suffisant).
+      ⚠️ Ce que tu modifies ici est enregistré <b>directement sur GitHub</b>.<br>
+      <a href="https://github.com/settings/tokens" target="_blank">Créer un token GitHub</a> (droit <code>repo</code> nécessaire).
     </div>
   </div>
-  <script src="admin_Version7.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

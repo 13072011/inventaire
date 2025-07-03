@@ -12,7 +12,7 @@ function fromBase64(str) {
   return decodeURIComponent(escape(atob(str)));
 }
 
-// === API GITHUB ===
+// === GITHUB API ===
 async function fetchInventaire(token) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`;
   const res = await fetch(url, {
@@ -26,7 +26,7 @@ async function fetchInventaire(token) {
   return { json: JSON.parse(fromBase64(data.content)), sha: data.sha };
 }
 
-async function saveInventaire(token, nouveauJson, sha) {
+async function saveInventaire(token, invArray, sha) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
   const res = await fetch(url, {
     method: "PUT",
@@ -36,8 +36,8 @@ async function saveInventaire(token, nouveauJson, sha) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      message: "Mise à jour de l'inventaire via l'admin",
-      content: toBase64(JSON.stringify(nouveauJson, null, 2)),
+      message: "Mise à jour inventaire (interface simplifiée)",
+      content: toBase64(JSON.stringify(invArray, null, 2)),
       sha: sha,
       branch: BRANCH
     })
@@ -49,46 +49,95 @@ async function saveInventaire(token, nouveauJson, sha) {
   return await res.json();
 }
 
-// === UI INTERACTION ===
+// === UI ===
 const tokenInput = document.getElementById("token");
-const textarea = document.getElementById("inventaire");
 const btnLoad = document.getElementById("load");
 const btnSave = document.getElementById("save");
 const btnNew = document.getElementById("new");
-const btnCopy = document.getElementById("copy");
 const msg = document.getElementById("msg");
-let lastSha = null;
-let lastLoadedJson = null;
+const invTable = document.getElementById("inv-table").querySelector("tbody");
 
-function setMsg(txt, success = false) {
+let lastSha = null;
+let loadedData = [];
+
+function setMsg(txt, ok=false) {
   msg.textContent = txt || "";
-  msg.className = success ? "success" : "";
+  msg.className = ok ? "success" : "";
 }
 
 function enableEdit(enabled) {
-  textarea.disabled = !enabled;
   btnSave.disabled = !enabled;
-  btnCopy.disabled = !enabled;
+  Array.from(invTable.querySelectorAll("input,textarea")).forEach(i => i.disabled = !enabled);
+  btnNew.disabled = !enabled;
+}
+
+function clearTable() {
+  invTable.innerHTML = "";
+}
+
+function addRow(article = {}) {
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input type="text" class="nom" placeholder="Ex : Clé USB" value="${article.nom || ""}" required></td>
+    <td><input type="number" min="0" class="quantite" placeholder="Nombre" value="${article.quantite || ""}" required></td>
+    <td><input type="text" class="desc" placeholder="Courte description" value="${article.description || ""}"></td>
+    <td class="actions">
+      <button type="button" title="Supprimer la ligne">✖️</button>
+    </td>
+  `;
+  tr.querySelector("button").onclick = () => {
+    tr.remove();
+    checkChanged();
+  };
+  Array.from(tr.querySelectorAll("input")).forEach(i => {
+    i.oninput = checkChanged;
+  });
+  invTable.appendChild(tr);
+}
+
+function loadTable(data) {
+  clearTable();
+  (Array.isArray(data) ? data : Object.values(data)).forEach(item => addRow(item));
+}
+
+function getTableData() {
+  // Retourne le tableau de l'inventaire à envoyer à GitHub
+  return Array.from(invTable.querySelectorAll("tr")).map(tr => ({
+    nom: tr.querySelector(".nom").value.trim(),
+    quantite: Number(tr.querySelector(".quantite").value),
+    description: tr.querySelector(".desc").value.trim()
+  })).filter(item => item.nom);
+}
+
+function checkChanged() {
+  // Active/désactive le bouton "Enregistrer" si modif
+  let modif = false;
+  try {
+    const cur = JSON.stringify(getTableData());
+    modif = cur !== JSON.stringify(loadedData);
+  } catch {}
+  btnSave.disabled = !modif;
 }
 
 btnLoad.onclick = async () => {
   setMsg("Chargement...");
   enableEdit(false);
-  textarea.value = "";
+  clearTable();
   try {
     const token = tokenInput.value.trim();
     if (!token) throw new Error("Renseigne ton token GitHub.");
     const { json, sha } = await fetchInventaire(token);
-    textarea.value = JSON.stringify(json, null, 2);
+    loadedData = Array.isArray(json) ? json : Object.values(json);
+    loadTable(loadedData);
     lastSha = sha;
-    lastLoadedJson = JSON.stringify(json, null, 2);
     setMsg("Inventaire chargé ✅", true);
     enableEdit(true);
+    checkChanged();
   } catch (e) {
     setMsg(e.message || e, false);
+    loadedData = [];
     lastSha = null;
-    lastLoadedJson = null;
-    textarea.value = "";
+    clearTable();
     enableEdit(false);
   }
 };
@@ -99,50 +148,27 @@ btnSave.onclick = async () => {
   try {
     const token = tokenInput.value.trim();
     if (!token) throw new Error("Renseigne ton token GitHub.");
-    if (!lastSha) throw new Error("Charge d'abord l'inventaire !");
-    let newJson;
-    try {
-      newJson = JSON.parse(textarea.value);
-    } catch (err) {
-      throw new Error("Le contenu n'est pas un JSON valide !");
-    }
-    await saveInventaire(token, newJson, lastSha);
+    if (!lastSha) throw new Error("Charge d'abord l’inventaire !");
+    const invArray = getTableData();
+    if (!invArray.length) throw new Error("L’inventaire est vide !");
+    await saveInventaire(token, invArray, lastSha);
     setMsg("Inventaire sauvegardé sur GitHub ✅", true);
-    lastLoadedJson = textarea.value;
+    loadedData = invArray;
+    checkChanged();
   } catch (e) {
     setMsg(e.message || e, false);
-  } finally {
-    btnSave.disabled = false;
   }
 };
 
 btnNew.onclick = () => {
-  if (textarea.disabled) return;
-  if (textarea.value.trim() && textarea.value !== lastLoadedJson) {
-    if (!confirm("Attention, tu vas écraser le contenu modifié. Continuer ?")) return;
-  }
-  textarea.value = "{\n  \n}";
-  setMsg("Nouveau JSON prêt à éditer.");
-};
-
-btnCopy.onclick = async () => {
-  if (textarea.disabled) return;
-  try {
-    await navigator.clipboard.writeText(textarea.value);
-    setMsg("Contenu copié dans le presse-papier ✅", true);
-  } catch {
-    setMsg("Impossible de copier (droits clipboard ?)", false);
-  }
+  addRow();
+  checkChanged();
 };
 
 tokenInput.oninput = () => {
   setMsg("");
   enableEdit(false);
-  textarea.value = "";
+  clearTable();
   lastSha = null;
-  lastLoadedJson = null;
-};
-
-textarea.oninput = () => {
-  btnSave.disabled = textarea.value === lastLoadedJson || textarea.disabled;
+  loadedData = [];
 };

@@ -3,5 +3,10 @@
     "nom": "bière blonde",
     "quantite": 2,
     "categorie": "bière"
+  },
+  {
+    "nom": "coca cola",
+    "quantite": 5,
+    "categorie": "soda"
   }
 ]

@@ -1,162 +1,94 @@
-let inventaire = [];
-const form = document.getElementById('boisson-form');
-const tableBody = document.querySelector('#inventaire-table tbody');
-const editIndexInput = document.getElementById('edit-index');
-const btnAdd = document.getElementById('btn-add');
-const btnCancel = document.getElementById('btn-cancel');
+// Configuration : à adapter si besoin
+const OWNER = "13072011";
+const REPO = "inventaire";
+const PATH = "inventaire.json";
+const BRANCH = "main";
 
-// Chargement du JSON local
-document.getElementById('json-loader').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        try {
-            const data = JSON.parse(ev.target.result);
-            if (!Array.isArray(data)) throw new Error("Format invalide");
-            inventaire = data;
-            document.getElementById('admin-section').style.display = '';
-            renderTable();
-        } catch (err) {
-            alert("Erreur de lecture JSON : " + err.message);
-        }
-    };
-    reader.readAsText(file);
-});
-document.getElementById('new-inventaire').onclick = function() {
-    inventaire = [];
-    document.getElementById('admin-section').style.display = '';
-    renderTable();
-};
-
-// Affichage du tableau d'inventaire
-function renderTable() {
-    tableBody.innerHTML = "";
-    inventaire.forEach((b, idx) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${b.nom}</td>
-            <td>${b.quantite}</td>
-            <td>${b.categorie}</td>
-            <td class="actions">
-                <button onclick="editBoisson(${idx})">Modifier</button>
-                <button onclick="deleteBoisson(${idx})">Supprimer</button>
-            </td>
-        `;
-        tableBody.appendChild(tr);
-    });
+// Utilitaire : encoder en base64 (UTF-8 safe)
+function toBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
 }
 
-window.editBoisson = function(idx) {
-    const b = inventaire[idx];
-    form.nom.value = b.nom;
-    form.quantite.value = b.quantite;
-    form.categorie.value = b.categorie;
-    editIndexInput.value = idx;
-    btnAdd.textContent = "Valider modification";
-    btnCancel.style.display = '';
-};
+// Utilitaire : décoder du base64 (UTF-8 safe)
+function fromBase64(str) {
+  return decodeURIComponent(escape(atob(str)));
+}
 
-window.deleteBoisson = function(idx) {
-    if (confirm("Supprimer cette boisson ?")) {
-        inventaire.splice(idx, 1);
-        renderTable();
+// 1. Lire le fichier inventaire.json depuis GitHub
+async function loadInventaire(token) {
+  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`;
+  const res = await fetch(url, {
+    headers: {
+      "Authorization": `token ${token}`,
+      "Accept": "application/vnd.github.v3+json"
     }
-};
+  });
+  if (!res.ok) throw new Error("Erreur lors du chargement : " + res.statusText);
+  const data = await res.json();
+  // Décoder le contenu base64
+  return {
+    json: JSON.parse(fromBase64(data.content)),
+    sha: data.sha
+  };
+}
 
-btnCancel.onclick = function() {
-    form.reset();
-    editIndexInput.value = '';
-    btnAdd.textContent = "Ajouter";
-    btnCancel.style.display = 'none';
-};
+// 2. Écrire le fichier inventaire.json sur GitHub
+async function saveInventaire(token, newJson, sha) {
+  const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
+  const res = await fetch(url, {
+    method: "PUT",
+    headers: {
+      "Authorization": `token ${token}`,
+      "Accept": "application/vnd.github.v3+json",
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      message: "Mise à jour de l'inventaire",
+      content: toBase64(JSON.stringify(newJson, null, 2)),
+      sha: sha,
+      branch: BRANCH
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error("Erreur GitHub: " + (err.message || res.statusText));
+  }
+  return await res.json();
+}
 
-form.addEventListener('submit', function(e) {
-    e.preventDefault();
-    const nom = form.nom.value.trim();
-    const quantite = parseInt(form.quantite.value, 10);
-    const categorie = form.categorie.value.trim();
-    if (!nom || isNaN(quantite) || !categorie) return;
-    const idx = editIndexInput.value;
-    if (idx !== '') {
-        inventaire[idx] = { nom, quantite, categorie };
-    } else {
-        inventaire.push({ nom, quantite, categorie });
-    }
-    form.reset();
-    editIndexInput.value = '';
-    btnAdd.textContent = "Ajouter";
-    btnCancel.style.display = 'none';
-    renderTable();
-});
+// Exemple d’intégration avec une interface HTML simple
+document.addEventListener("DOMContentLoaded", async () => {
+  const tokenInput = document.getElementById("token");
+  const textarea = document.getElementById("inventaire");
+  const btnLoad = document.getElementById("load");
+  const btnSave = document.getElementById("save");
+  const msg = document.getElementById("msg");
+  let lastSha = null;
 
-// Téléchargement du JSON
-document.getElementById('download-json').onclick = function() {
-    const blob = new Blob([JSON.stringify(inventaire, null, 2)], {type: 'application/json'});
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = "inventaire.json";
-    a.click();
-};
-
-// Commit GitHub
-document.getElementById('push-github').onclick = async function() {
-    const owner = document.getElementById('gh-owner').value.trim();
-    const repo = document.getElementById('gh-repo').value.trim();
-    const branch = document.getElementById('gh-branch').value.trim();
-    const path = document.getElementById('gh-path').value.trim();
-    const token = document.getElementById('gh-token').value.trim();
-    const msg = document.getElementById('gh-msg');
-
-    if (!owner || !repo || !branch || !path || !token) {
-        msg.style.color = 'red';
-        msg.textContent = "Champs GitHub manquants.";
-        return;
-    }
-
-    msg.style.color = '#888';
-    msg.textContent = "Mise à jour en cours...";
-
-    const octokit = new window.Octokit.Octokit({ auth: token });
-
+  btnLoad.onclick = async () => {
+    msg.textContent = "Chargement...";
     try {
-        // Récupérer le SHA du fichier pour pouvoir le modifier
-        let fileResp = await octokit.repos.getContent({ owner, repo, path, ref: branch });
-        let sha = fileResp.data.sha;
-
-        // Commit !
-        await octokit.repos.createOrUpdateFileContents({
-            owner, repo, path,
-            message: "Mise à jour inventaire.json via admin interface",
-            content: btoa(unescape(encodeURIComponent(JSON.stringify(inventaire, null, 2)))),
-            branch,
-            sha
-        });
-        msg.style.color = "#007700";
-        msg.textContent = "Mise à jour réussie sur GitHub !";
+      const token = tokenInput.value.trim();
+      const { json, sha } = await loadInventaire(token);
+      textarea.value = JSON.stringify(json, null, 2);
+      lastSha = sha;
+      msg.textContent = "Inventaire chargé ✅";
     } catch (e) {
-        if (e.status === 404) {
-            // Le fichier n'existe pas, on le crée
-            try {
-                await octokit.repos.createOrUpdateFileContents({
-                    owner, repo, path,
-                    message: "Ajout inventaire.json via admin interface",
-                    content: btoa(unescape(encodeURIComponent(JSON.stringify(inventaire, null, 2)))),
-                    branch
-                });
-                msg.style.color = "#007700";
-                msg.textContent = "inventaire.json créé sur GitHub !";
-            } catch (err2) {
-                msg.style.color = "red";
-                msg.textContent = "Erreur lors de la création : " + err2.message;
-            }
-        } else {
-            msg.style.color = "red";
-            msg.textContent = "Erreur GitHub: " + (e.message || e);
-            if (e.response && e.response.data && e.response.data.message) {
-                msg.textContent += " — " + e.response.data.message;
-            }
-            console.error(e);
-        }
+      msg.textContent = e.message;
+      lastSha = null;
     }
-};
+  };
+
+  btnSave.onclick = async () => {
+    msg.textContent = "Enregistrement...";
+    try {
+      const token = tokenInput.value.trim();
+      const newJson = JSON.parse(textarea.value);
+      if (!lastSha) throw new Error("Charge d'abord l'inventaire !");
+      await saveInventaire(token, newJson, lastSha);
+      msg.textContent = "Inventaire mis à jour sur GitHub ✅";
+    } catch (e) {
+      msg.textContent = e.message;
+    }
+  };
+});

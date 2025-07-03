@@ -117,7 +117,7 @@ document.getElementById('push-github').onclick = async function() {
     msg.style.color = '#888';
     msg.textContent = "Mise à jour en cours...";
 
-    const octokit = new window.Octokit({ auth: token });
+    const octokit = new window.Octokit.Octokit({ auth: token });
 
     try {
         // Récupérer le SHA du fichier pour pouvoir le modifier

@@ -1,21 +1,19 @@
-// Configuration : à adapter si besoin
+// === CONFIGURATION ===
 const OWNER = "13072011";
 const REPO = "inventaire";
 const PATH = "inventaire.json";
 const BRANCH = "main";
 
-// Utilitaire : encoder en base64 (UTF-8 safe)
+// === UTILS ===
 function toBase64(str) {
   return btoa(unescape(encodeURIComponent(str)));
 }
-
-// Utilitaire : décoder du base64 (UTF-8 safe)
 function fromBase64(str) {
   return decodeURIComponent(escape(atob(str)));
 }
 
-// 1. Lire le fichier inventaire.json depuis GitHub
-async function loadInventaire(token) {
+// === API GITHUB ===
+async function fetchInventaire(token) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}?ref=${BRANCH}`;
   const res = await fetch(url, {
     headers: {
@@ -23,17 +21,12 @@ async function loadInventaire(token) {
       "Accept": "application/vnd.github.v3+json"
     }
   });
-  if (!res.ok) throw new Error("Erreur lors du chargement : " + res.statusText);
+  if (!res.ok) throw new Error("Erreur chargement : " + res.statusText);
   const data = await res.json();
-  // Décoder le contenu base64
-  return {
-    json: JSON.parse(fromBase64(data.content)),
-    sha: data.sha
-  };
+  return { json: JSON.parse(fromBase64(data.content)), sha: data.sha };
 }
 
-// 2. Écrire le fichier inventaire.json sur GitHub
-async function saveInventaire(token, newJson, sha) {
+async function saveInventaire(token, nouveauJson, sha) {
   const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${PATH}`;
   const res = await fetch(url, {
     method: "PUT",
@@ -43,8 +36,8 @@ async function saveInventaire(token, newJson, sha) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      message: "Mise à jour de l'inventaire",
-      content: toBase64(JSON.stringify(newJson, null, 2)),
+      message: "Mise à jour de l'inventaire via l'admin",
+      content: toBase64(JSON.stringify(nouveauJson, null, 2)),
       sha: sha,
       branch: BRANCH
     })
@@ -56,39 +49,100 @@ async function saveInventaire(token, newJson, sha) {
   return await res.json();
 }
 
-// Exemple d’intégration avec une interface HTML simple
-document.addEventListener("DOMContentLoaded", async () => {
-  const tokenInput = document.getElementById("token");
-  const textarea = document.getElementById("inventaire");
-  const btnLoad = document.getElementById("load");
-  const btnSave = document.getElementById("save");
-  const msg = document.getElementById("msg");
-  let lastSha = null;
+// === UI INTERACTION ===
+const tokenInput = document.getElementById("token");
+const textarea = document.getElementById("inventaire");
+const btnLoad = document.getElementById("load");
+const btnSave = document.getElementById("save");
+const btnNew = document.getElementById("new");
+const btnCopy = document.getElementById("copy");
+const msg = document.getElementById("msg");
+let lastSha = null;
+let lastLoadedJson = null;
 
-  btnLoad.onclick = async () => {
-    msg.textContent = "Chargement...";
-    try {
-      const token = tokenInput.value.trim();
-      const { json, sha } = await loadInventaire(token);
-      textarea.value = JSON.stringify(json, null, 2);
-      lastSha = sha;
-      msg.textContent = "Inventaire chargé ✅";
-    } catch (e) {
-      msg.textContent = e.message;
-      lastSha = null;
-    }
-  };
+function setMsg(txt, success = false) {
+  msg.textContent = txt || "";
+  msg.className = success ? "success" : "";
+}
 
-  btnSave.onclick = async () => {
-    msg.textContent = "Enregistrement...";
+function enableEdit(enabled) {
+  textarea.disabled = !enabled;
+  btnSave.disabled = !enabled;
+  btnCopy.disabled = !enabled;
+}
+
+btnLoad.onclick = async () => {
+  setMsg("Chargement...");
+  enableEdit(false);
+  textarea.value = "";
+  try {
+    const token = tokenInput.value.trim();
+    if (!token) throw new Error("Renseigne ton token GitHub.");
+    const { json, sha } = await fetchInventaire(token);
+    textarea.value = JSON.stringify(json, null, 2);
+    lastSha = sha;
+    lastLoadedJson = JSON.stringify(json, null, 2);
+    setMsg("Inventaire chargé ✅", true);
+    enableEdit(true);
+  } catch (e) {
+    setMsg(e.message || e, false);
+    lastSha = null;
+    lastLoadedJson = null;
+    textarea.value = "";
+    enableEdit(false);
+  }
+};
+
+btnSave.onclick = async () => {
+  setMsg("Enregistrement...");
+  btnSave.disabled = true;
+  try {
+    const token = tokenInput.value.trim();
+    if (!token) throw new Error("Renseigne ton token GitHub.");
+    if (!lastSha) throw new Error("Charge d'abord l'inventaire !");
+    let newJson;
     try {
-      const token = tokenInput.value.trim();
-      const newJson = JSON.parse(textarea.value);
-      if (!lastSha) throw new Error("Charge d'abord l'inventaire !");
-      await saveInventaire(token, newJson, lastSha);
-      msg.textContent = "Inventaire mis à jour sur GitHub ✅";
-    } catch (e) {
-      msg.textContent = e.message;
+      newJson = JSON.parse(textarea.value);
+    } catch (err) {
+      throw new Error("Le contenu n'est pas un JSON valide !");
     }
-  };
-});
+    await saveInventaire(token, newJson, lastSha);
+    setMsg("Inventaire sauvegardé sur GitHub ✅", true);
+    lastLoadedJson = textarea.value;
+  } catch (e) {
+    setMsg(e.message || e, false);
+  } finally {
+    btnSave.disabled = false;
+  }
+};
+
+btnNew.onclick = () => {
+  if (textarea.disabled) return;
+  if (textarea.value.trim() && textarea.value !== lastLoadedJson) {
+    if (!confirm("Attention, tu vas écraser le contenu modifié. Continuer ?")) return;
+  }
+  textarea.value = "{\n  \n}";
+  setMsg("Nouveau JSON prêt à éditer.");
+};
+
+btnCopy.onclick = async () => {
+  if (textarea.disabled) return;
+  try {
+    await navigator.clipboard.writeText(textarea.value);
+    setMsg("Contenu copié dans le presse-papier ✅", true);
+  } catch {
+    setMsg("Impossible de copier (droits clipboard ?)", false);
+  }
+};
+
+tokenInput.oninput = () => {
+  setMsg("");
+  enableEdit(false);
+  textarea.value = "";
+  lastSha = null;
+  lastLoadedJson = null;
+};
+
+textarea.oninput = () => {
+  btnSave.disabled = textarea.value === lastLoadedJson || textarea.disabled;
+};

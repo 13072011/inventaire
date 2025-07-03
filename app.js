@@ -2,7 +2,7 @@
 const URL_JSON = "https://raw.githubusercontent.com/13072011/inventaire/main/inventaire.json";
 
 // Seuil sous lequel on affiche "stock bas"
-const STOCK_BAS = 5;
+const STOCK_BAS = 2;
 
 let boissons = [];
 
@@ -41,7 +41,7 @@ function renderClientView() {
             <div class="boisson-categorie">${b.categorie || ""}</div>
             <div class="stock-info">
                 ${qte > 0 
-                    ? `En Stock`
+                    ? `<span style="color:#00cd00;">En Stock</span>`
                     : `<span style="color:#d41e1e;font-weight:bold;">Rupture de stock</span>`
                 }
             </div>

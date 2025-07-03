@@ -1,12 +1,12 @@
 [
   {
-    "nom": "bière blonde",
-    "quantite": 2,
-    "categorie": "bière"
-  },
-  {
     "nom": "coca cola",
     "quantite": 5,
     "categorie": "soda"
+  },
+  {
+    "nom": "Citronel",
+    "quantite": 2,
+    "categorie": "Jus"
   }
 ]

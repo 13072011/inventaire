@@ -2,36 +2,36 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Inventaire GitHub (simplifié)</title>
+  <title>Admin Inventaire GitHub (corrigé)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    body { font-family:sans-serif; background:#f5f7fa; margin:0; }
-    .container { max-width:700px; margin:40px auto; background:#fff; border-radius:8px; box-shadow:0 0 8px #0001; padding:30px 20px 20px 20px; }
-    h1 { font-size:2em; color:#264653; letter-spacing:1px; }
-    label { font-weight:500; display:block; margin:0.7em 0 0.2em; color:#222; }
+    body { font-family: sans-serif; background: #f5f7fa; margin: 0; }
+    .container { max-width: 700px; margin: 40px auto; background: #fff; border-radius: 8px; box-shadow: 0 0 8px #0001; padding: 30px 20px 20px 20px; }
+    h1 { font-size: 2em; color: #264653; letter-spacing: 1px; }
+    label { font-weight: 500; display: block; margin: 0.7em 0 0.2em; color: #222; }
     input[type="password"], input[type="text"], input[type="number"] {
-      width:100%; box-sizing:border-box; font-size:1em; padding:7px 10px; margin-bottom:10px;
-      border:1px solid #bbb; border-radius:4px; outline:none; transition:border 0.2s;
+      width: 100%; box-sizing: border-box; font-size: 1em; padding: 7px 10px; margin-bottom: 10px;
+      border: 1px solid #bbb; border-radius: 4px; outline: none; transition: border 0.2s;
     }
-    input:focus { border-color:#4e8cff; }
-    table { width:100%; border-collapse:collapse; margin-bottom: 10px; background:#f7faff; }
-    th, td { border:1px solid #cce; padding:7px; text-align:left; }
-    th { background:#e9f1fb; }
+    input:focus { border-color: #4e8cff; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 10px; background: #f7faff; }
+    th, td { border: 1px solid #cce; padding: 7px; text-align: left; }
+    th { background: #e9f1fb; }
     tr:nth-child(even) { background: #f4fafd; }
-    .actions button { background: #e74c3c; border: none; color: #fff; padding: 5px 12px; border-radius: 4px; cursor:pointer;}
+    .actions button { background: #e74c3c; border: none; color: #fff; padding: 5px 12px; border-radius: 4px; cursor: pointer;}
     .actions button:hover { background: #c0392b; }
-    .btn-row { display:flex; gap:1em; margin-bottom:1em; }
+    .btn-row { display: flex; gap: 1em; margin-bottom: 1em; }
     button {
-      background:#4e8cff; color:#fff; border:none; border-radius:4px; padding:10px 22px;
-      font-size:1em; cursor:pointer; font-weight:600; box-shadow:0 2px 6px #0001; transition:background 0.2s;
+      background: #4e8cff; color: #fff; border: none; border-radius: 4px; padding: 10px 22px;
+      font-size: 1em; cursor: pointer; font-weight: 600; box-shadow: 0 2px 6px #0001; transition: background 0.2s;
     }
-    button:disabled { background:#bdbdbd; cursor:not-allowed; }
-    button[type="button"].add { background:#239b56; }
-    button[type="button"].add:hover { background:#16763a; }
-    #msg { font-weight:600; min-height:1.5em; margin-top:10px; color:#d90429; }
-    #msg.success { color:#239b56; }
-    .small { color:#666; font-size:.98em; }
-    @media (max-width:600px){
+    button:disabled { background: #bdbdbd; cursor: not-allowed; }
+    button[type="button"].add { background: #239b56; }
+    button[type="button"].add:hover { background: #16763a; }
+    #msg { font-weight: 600; min-height: 1.5em; margin-top: 10px; color: #d90429; }
+    #msg.success { color: #239b56; }
+    .small { color: #666; font-size: .98em; }
+    @media (max-width: 600px){
       .container{max-width:100vw;padding:16px 2vw 10vw 2vw;}
       h1{font-size:1.3em;}
       table{font-size:.98em;}
@@ -71,6 +71,6 @@
       <a href="https://github.com/settings/tokens" target="_blank">Créer un token GitHub</a> (droit <code>repo</code> nécessaire).
     </div>
   </div>
-  <script src="admin_Version7.js"></script>
+  <script src="admin.js"></script>
 </body>
 </html>

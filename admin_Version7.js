@@ -153,6 +153,10 @@ document.getElementById('push-github').onclick = async function() {
         } else {
             msg.style.color = "red";
             msg.textContent = "Erreur GitHub: " + (e.message || e);
+            if (e.response && e.response.data && e.response.data.message) {
+                msg.textContent += " — " + e.response.data.message;
+            }
+            console.error(e);
         }
     }
 };

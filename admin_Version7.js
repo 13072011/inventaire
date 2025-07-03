@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", () => {
     tr.innerHTML = `
       <td><input type="text" class="nom" placeholder="Ex : Clé USB" value="${article.nom || ""}" required></td>
       <td><input type="number" min="0" class="quantite" placeholder="Nombre" value="${article.quantite || ""}" required></td>
-      <td><input type="text" class="desc" placeholder="Courte description" value="${article.description || ""}"></td>
+      <td><input type="text" class="desc" placeholder="Courte description" value="${article.categorie || ""}"></td>
       <td class="actions">
         <button type="button" title="Supprimer la ligne">✖️</button>
       </td>
